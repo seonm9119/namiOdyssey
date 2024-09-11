@@ -1,0 +1,23 @@
+# 학습 관련 하이퍼파라미터
+config: './config.yaml'
+data_dir: './tiny-imagenet-200'
+batch_size: 256     
+epochs: 10          
+lr: 0.01   
+
+seed: 42
+device: 'cuda'         
+num_workers: 2
+logger: None
+per_save: 20    
+save_dir: './saved_models' 
+
+patch_size: 15
+jitter: 3
+
+
+model:
+  name: resnet18  
+  dim: [512, 4096]
+
+
