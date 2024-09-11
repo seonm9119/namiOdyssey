@@ -111,6 +111,40 @@ def make_val_dataframe(root_dir, csv_path='val.csv'):
     return val_df
 
 
+import torch
+from namiOdyssey.base.datasets import BasetDataset
 
+FILE = {'train':('train.csv', True, make_train_dataframe),
+        'val': ('val.csv', False, make_val_dataframe)}
+
+def check_file(data_dir, file, create_function):
+    """Helper function to check file existence and create if needed."""
+
+    file_path = os.path.join(data_dir, file)
+    if not os.path.exists(file_path):
+        print(f"{file_path} not found. Creating the CSV file...")
+        create_function(data_dir, csv_path=file_path)
+    
+    return file_path
+
+def _build_loader(config, info, transform):
+
+    file, train, func = info
+    file_path = check_file(config.data_dir, file, func)
+
+    datasets = BasetDataset(file_path, transform)
+    return torch.utils.data.DataLoader(datasets, 
+                                       batch_size=config.batch_size,
+                                       shuffle=train)
+    
+
+
+def build_loader(config, transform):
+
+    loader = {}
+    for key, info in FILE.items():
+        loader[key] = _build_loader(config, info, transform)
+
+    return loader
     
 
