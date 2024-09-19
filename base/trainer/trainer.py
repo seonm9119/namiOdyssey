@@ -11,7 +11,7 @@ class Trainer:
             self.set_config(train_config)
             os.makedirs(self.save_path, exist_ok=True)
 
-        self.logger = setup_logger()
+        self.logger = setup_logger(self.save_path)
         self.global_tr_losses = []
         self.global_val_losses = []
 

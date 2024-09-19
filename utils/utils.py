@@ -63,13 +63,13 @@ def _update_args_with_config(args, default_config):
     return args
 
 
-def setup_logger():
+def setup_logger(file_path):
     """Set up logging configuration."""
     logger = logging.getLogger('PyTorchLogger')
     logger.setLevel(logging.INFO)  # Set the logging level
 
     # Create a file handler for writing log messages to a file
-    file_handler = logging.FileHandler('training.log')
+    file_handler = logging.FileHandler(f'{file_path}/training.log')
     file_handler.setLevel(logging.INFO)
 
     # Create a console handler for outputting log messages to the console
