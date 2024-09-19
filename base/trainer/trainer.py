@@ -51,7 +51,6 @@ class Trainer:
             self.logger.info(f"Epoch [{epoch + 1}/{self.epochs}], "
                         f"TRNLoss: {self.global_tr_losses[-1]:.4f}, "
                         f"VALoss: {self.global_val_losses[-1]:.4f}, "
-                        f"lr: {self.optimizer.para_groups['lr']},"
                         f"Time: {(time.time() - start_time) / 60:.2f}")
             
             if (epoch + 1) % self.save_interval == 0 or epoch == self.epochs - 1:
