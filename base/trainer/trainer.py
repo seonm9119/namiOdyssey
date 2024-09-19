@@ -51,11 +51,13 @@ class Trainer:
             self.logger.info(f"Epoch [{epoch + 1}/{self.epochs}], "
                         f"TRNLoss: {self.global_tr_losses[-1]:.4f}, "
                         f"VALoss: {self.global_val_losses[-1]:.4f}, "
+                        f"lr: {self.optimizer.para_groups['lr']},"
                         f"Time: {(time.time() - start_time) / 60:.2f}")
             
             if (epoch + 1) % self.save_interval == 0 or epoch == self.epochs - 1:
                 file_path = os.path.join(self.save_path, f"epoch_{epoch+1}.pth")
-                save(epoch, self.model, self.optimizer, self.scheduler, file_path)
+                save(epoch, self.model, self.optimizer, self.scheduler, 
+                     self.global_tr_losses, self.global_val_losses, file_path)
                 self.logger.info(f"Model saved at epoch {epoch+1} to {file_path}")
 
             if self.scheduler is not None:

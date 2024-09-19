@@ -5,8 +5,11 @@ from tqdm import tqdm
 
 def set_train_config(cfg, model, loader):
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.7)
+    optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr,
+                                momentum=cfg.momentum, weight_decay=cfg.weight_decay)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 
+                                                           T_max=cfg.epochs - cfg.lr_warmup_epochs, 
+                                                           eta_min=cfg.lr_min)
     train_config = {'device': cfg.device,
                     'epochs': cfg.epochs,
                     'model' : model,
@@ -38,11 +41,13 @@ def to_device(data, device):
 
 
 
-def save(epoch, model, optimizer, scheduler, path):
+def save(epoch, model, optimizer, scheduler, trnloss, valloss, path):
     state = {'epoch': epoch,
              'model': model.state_dict(),
              'optimizer': optimizer.state_dict(),
-             'scheduler': scheduler.state_dict()}
+             'scheduler': scheduler.state_dict(),
+             'trnloss': trnloss,
+             'valloss': valloss}
         
     torch.save(state, path)
 

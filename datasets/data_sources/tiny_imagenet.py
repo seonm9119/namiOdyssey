@@ -37,7 +37,9 @@ _classes_=['n01443537', 'n01629819', 'n01641577', 'n01644900', 'n01698640', 'n01
  'n07875152', 'n07920052', 'n09193705', 'n09246464', 'n09256479', 'n09332890',
  'n09428293', 'n12267677']
 
-label_mapping = {label: idx for idx, label in enumerate(_classes_)}
+
+_classes_.sort()
+classes_to_idx = {label: idx for idx, label in enumerate(_classes_)}
 
 def make_train_dataframe(root_dir, csv_path='train.csv'):
     """
@@ -64,7 +66,7 @@ def make_train_dataframe(root_dir, csv_path='train.csv'):
         
         # Add the 'class_folder' column
         df['classes'] = class_folder
-        df['label'] = df['classes'].map(label_mapping)
+        df['label'] = df['classes'].map(classes_to_idx)
         
         # Add the DataFrame to the list
         dataframes.append(df)
@@ -100,7 +102,7 @@ def make_val_dataframe(root_dir, csv_path='val.csv'):
         val_df['image_path'] = val_df['image_path'].apply(lambda img_name: os.path.join(root_dir, 'val', 'images',img_name))
     
 
-    val_df['label'] = val_df['classes'].map(label_mapping)
+    val_df['label'] = val_df['classes'].map(classes_to_idx)
     # Reorder columns to 'image_path', 'x1', 'y1', 'x2', 'y2', 'label'
     val_df = val_df[['image_path', 'x1', 'y1', 'x2', 'y2', 'classes', 'label']]
 
@@ -111,40 +113,61 @@ def make_val_dataframe(root_dir, csv_path='val.csv'):
     return val_df
 
 
-import torch
-from namiOdyssey.base.datasets import BasetDataset
+SPLIT_FUNC = {'train':('train.csv', make_train_dataframe),
+              'val': ('val.csv', make_val_dataframe)}
 
-FILE = {'train':('train.csv', True, make_train_dataframe),
-        'val': ('val.csv', False, make_val_dataframe)}
-
-def check_file(data_dir, file, create_function):
+def check_file(data_dir, split='train'):
     """Helper function to check file existence and create if needed."""
 
+    file, function = SPLIT_FUNC[split]
     file_path = os.path.join(data_dir, file)
     if not os.path.exists(file_path):
         print(f"{file_path} not found. Creating the CSV file...")
-        create_function(data_dir, csv_path=file_path)
+        function(data_dir, csv_path=file_path)
     
     return file_path
 
-def _build_loader(config, info, transform):
+import torch
+from torch.utils.data import Dataset
+from torchvision.datasets.folder import default_loader
+from torchvision.datasets.utils import verify_str_arg
 
-    file, train, func = info
-    file_path = check_file(config.data_dir, file, func)
 
-    datasets = BasetDataset(file_path, transform)
-    return torch.utils.data.DataLoader(datasets, 
-                                       batch_size=config.batch_size,
-                                       shuffle=train)
+class TinyImageNet(Dataset):
+    def __init__(self, data_dir, split='train', transform=None):
+        super(TinyImageNet, self).__init__()
+
+        self.data_dir = data_dir
+        self.transform = transform
+        self.loader = default_loader
+        self.split = verify_str_arg(split, "split", ("train", "val",))
+
+        file_path = check_file(self.data_dir, split)
+        df = pd.read_csv(file_path, usecols=['image_path', 'label'])
+        self.img, self.label = df['image_path'], df['label']
+
     
+    def __len__(self):
+        return len(self.img)
+
+
+    def __getitem__(self, idx):
+        img = self.loader(self.img[idx])
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        label = torch.tensor(self.label[idx], dtype=torch.long)
+        return {'input': img, 'label': label}
 
 
 def build_loader(config, transform):
 
     loader = {}
-    for key, info in FILE.items():
-        loader[key] = _build_loader(config, info, transform)
+    for split in SPLIT_FUNC.keys():
+        datasets = TinyImageNet(config.data_dir, split, transform=transform)
+        loader[split] = torch.utils.data.DataLoader(datasets, 
+                                                    batch_size=config.batch_size,
+                                                    shuffle=True if split == 'train' else False)
 
     return loader
-    
-

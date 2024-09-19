@@ -18,7 +18,7 @@ def _collate_fn(batch):
     return {'uniform':uniform, 'random': random, 'label': label}
 
 
-def _build_loader(cfg, file_path, transform, train):
+def _build_loader(cfg, file_path, transform, key):
 
     dataset = RelativeLocDataset(file_dir=file_path, 
                                  patch_size=cfg.patch_size, 
@@ -27,7 +27,7 @@ def _build_loader(cfg, file_path, transform, train):
     
     return torch.utils.data.DataLoader(dataset, 
                                        batch_size=cfg.batch_size,
-                                       shuffle=train,
+                                       shuffle= True if key == 'train' else False,
                                        collate_fn=_collate_fn,
                                        num_workers=cfg.num_workers)
 
@@ -38,17 +38,16 @@ def build_loader(cfg):
 
 
 def tiny_imagenet(cfg):
-    from namiOdyssey.datasets.data_sources.tiny_imagenet import FILE, check_file
+    from namiOdyssey.datasets.data_sources.tiny_imagenet import SPLIT_FUNC, check_file
 
     transform = transforms.Compose([#transforms.ToTensor(),
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                         std=[0.229, 0.224, 0.225])])
     
     loader = {}
-    for key, info in FILE.items():
-        file, train, func = info
-        file_path = check_file(cfg.data_dir, file, func)
-        loader[key] = _build_loader(cfg, file_path, transform, train)
+    for key in SPLIT_FUNC.keys():
+        file_path = check_file(cfg.data_dir, key)
+        loader[key] = _build_loader(cfg, file_path, transform, key)
 
     return loader
 
