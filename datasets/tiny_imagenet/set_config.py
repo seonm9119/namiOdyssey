@@ -5,9 +5,23 @@ def set_train_config(cfg, model, loader):
 
     optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr,
                                 momentum=cfg.momentum, weight_decay=cfg.weight_decay)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 
+    
+
+    # CosineAnnealingLR
+    main_lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 
                                                            T_max=cfg.epochs - cfg.lr_warmup_epochs, 
                                                            eta_min=cfg.lr_min)
+    # LinearLR
+    warmup_lr_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 
+                                                            start_factor=cfg.lr_warmup_decay, 
+                                                            total_iters=cfg.lr_warmup_epochs)
+    
+
+    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, 
+                                                      schedulers=[warmup_lr_scheduler, main_lr_scheduler], 
+                                                      milestones=[cfg.lr_warmup_epochs])
+
+    
     train_config = {'device': cfg.device,
                     'epochs': cfg.epochs,
                     'model' : model,

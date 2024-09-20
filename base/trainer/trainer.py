@@ -10,15 +10,18 @@ class Trainer:
         if train_config is not None:
             self.set_config(train_config)
             os.makedirs(self.save_path, exist_ok=True)
-
-        self.logger = setup_logger(self.save_path)
+            self.set_logger(self.save_path)
+        
         self.global_tr_losses = []
         self.global_val_losses = []
 
     def set_config(self, config):
         for key, value in config.items():
             setattr(self, key, value)
-    
+
+    def set_logger(self, save_path):
+        self.logger = setup_logger(save_path)
+
     def train(self, **kwargs):
         return train(**kwargs)
     

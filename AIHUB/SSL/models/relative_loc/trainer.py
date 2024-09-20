@@ -52,6 +52,7 @@ class RelativeLocTrainer(Trainer):
         
         self.set_config(train_config)
         os.makedirs(self.save_path, exist_ok=True)
+        self.set_logger(self.save_path)
 
     def train(self, model, loader, optimizer, criterion, device):
         losses = []

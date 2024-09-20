@@ -38,16 +38,21 @@ def build_loader(cfg):
 
 
 def tiny_imagenet(cfg):
-    from namiOdyssey.datasets.data_sources.tiny_imagenet import SPLIT_FUNC, check_file
+    from namiOdyssey.datasets.tiny_imagenet.tiny_imagenet import SPLIT_FUNC, check_file
 
-    transform = transforms.Compose([#transforms.ToTensor(),
+    train_trans = transforms.Compose([#transforms.ToTensor(),
+                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                                        std=[0.229, 0.224, 0.225])])
+    val_trans = transforms.Compose([#transforms.ToTensor(),
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                         std=[0.229, 0.224, 0.225])])
     
+    transform = {'train': train_trans, 'val': val_trans}
+
     loader = {}
     for key in SPLIT_FUNC.keys():
         file_path = check_file(cfg.data_dir, key)
-        loader[key] = _build_loader(cfg, file_path, transform, key)
+        loader[key] = _build_loader(cfg, file_path, transform[key], key)
 
     return loader
 

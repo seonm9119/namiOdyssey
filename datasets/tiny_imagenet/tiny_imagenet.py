@@ -165,7 +165,7 @@ def build_loader(config, transform):
 
     loader = {}
     for split in SPLIT_FUNC.keys():
-        datasets = TinyImageNet(config.data_dir, split, transform=transform)
+        datasets = TinyImageNet(config.data_dir, split, transform=transform[split])
         loader[split] = torch.utils.data.DataLoader(datasets, 
                                                     batch_size=config.batch_size,
                                                     shuffle=True if split == 'train' else False)
