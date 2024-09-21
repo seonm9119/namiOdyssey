@@ -38,7 +38,7 @@ def build_loader(cfg):
 
 
 def tiny_imagenet(cfg):
-    from namiOdyssey.datasets.tiny_imagenet.tiny_imagenet import SPLIT_FUNC, check_file
+    from namiOdyssey.datasets.tiny_imagenet import SPLIT_FUNC, check_file
 
     train_trans = transforms.Compose([#transforms.ToTensor(),
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], 
